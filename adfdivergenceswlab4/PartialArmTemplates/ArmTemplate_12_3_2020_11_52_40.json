@@ -1,0 +1,177 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adfdivergenceswlab4"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Upcert')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "UpcertDataFlow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "UpsertDataFlow",
+								"type": "DataFlowReference"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/UpsertDataFlow')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Invoice1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "InvoicesBlob",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Invoices1.csv",
+						"container": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "InvoiceID",
+						"type": "String"
+					},
+					{
+						"name": "VendorID",
+						"type": "String"
+					},
+					{
+						"name": "InvoiceNumber",
+						"type": "String"
+					},
+					{
+						"name": "InvoiceDate",
+						"type": "String"
+					},
+					{
+						"name": "InvoiceTotal",
+						"type": "String"
+					},
+					{
+						"name": "PaymentTotal",
+						"type": "String"
+					},
+					{
+						"name": "CreditTotal",
+						"type": "String"
+					},
+					{
+						"name": "TermsID",
+						"type": "String"
+					},
+					{
+						"name": "InvoiceDueDate",
+						"type": "String"
+					},
+					{
+						"name": "PaymentDate",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/InvoiceTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "InvoicesDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "invoices"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/UpsertDataFlow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Invoice1",
+								"type": "DatasetReference"
+							},
+							"name": "ReadInvoices"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "InvoiceTable",
+								"type": "DatasetReference"
+							},
+							"name": "WriteInvoiceTable"
+						}
+					],
+					"transformations": [
+						{
+							"name": "MarkUpsert"
+						}
+					],
+					"script": "source(output(\n\t\tInvoiceID as short,\n\t\tVendorID as short,\n\t\tInvoiceNumber as string,\n\t\tInvoiceDate as date,\n\t\tInvoiceTotal as double,\n\t\tPaymentTotal as double,\n\t\tCreditTotal as double,\n\t\tTermsID as string,\n\t\tInvoiceDueDate as date,\n\t\tPaymentDate as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ReadInvoices\nReadInvoices alterRow(upsertIf(true())) ~> MarkUpsert\nMarkUpsert sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['InvoiceID'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> WriteInvoiceTable"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Invoice1')]",
+				"[concat(variables('factoryId'), '/datasets/InvoiceTable')]"
+			]
+		}
+	]
+}
