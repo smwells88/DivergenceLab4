@@ -1,12 +1,24 @@
 {
-	"name": "dataflow1",
+	"name": "UpcertDataFlow",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
-			"sources": [],
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Invoice1",
+						"type": "DatasetReference"
+					},
+					"name": "ReadInvoices"
+				}
+			],
 			"sinks": [],
-			"transformations": [],
-			"script": ""
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				}
+			],
+			"script": "source(output(\n\t\tInvoiceID as short,\n\t\tVendorID as short,\n\t\tInvoiceNumber as string,\n\t\tInvoiceDate as timestamp,\n\t\tInvoiceTotal as double,\n\t\tPaymentTotal as double,\n\t\tCreditTotal as double,\n\t\tTermsID as short,\n\t\tInvoiceDueDate as timestamp,\n\t\tPaymentDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ReadInvoices\nReadInvoices alterRow(upsertIf(true())) ~> AlterRow1"
 		}
 	}
 }

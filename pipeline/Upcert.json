@@ -1,9 +1,9 @@
 {
-	"name": "pipeline1",
+	"name": "Upcert",
 	"properties": {
 		"activities": [
 			{
-				"name": "dataflow1",
+				"name": "UpcertDataFlow",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "dataflow1",
+						"referenceName": "UpcertDataFlow",
 						"type": "DataFlowReference"
 					},
 					"compute": {
