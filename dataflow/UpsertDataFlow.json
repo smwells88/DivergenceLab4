@@ -6,7 +6,7 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "Invoice3",
+						"referenceName": "DynamicInvoiceCSV",
 						"type": "DatasetReference"
 					},
 					"name": "ReadInvoices"
