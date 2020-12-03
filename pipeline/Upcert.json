@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "UpcertDataFlow",
+						"referenceName": "UpsertDataFlow",
 						"type": "DataFlowReference"
 					},
 					"compute": {
