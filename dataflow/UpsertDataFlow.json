@@ -1,5 +1,5 @@
 {
-	"name": "UpcertDataFlow",
+	"name": "UpsertDataFlow",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -23,10 +23,10 @@
 			],
 			"transformations": [
 				{
-					"name": "MarkUpcert"
+					"name": "MarkUpsert"
 				}
 			],
-			"script": "source(output(\n\t\tInvoiceID as short,\n\t\tVendorID as short,\n\t\tInvoiceNumber as string,\n\t\tInvoiceDate as date,\n\t\tInvoiceTotal as double,\n\t\tPaymentTotal as double,\n\t\tCreditTotal as double,\n\t\tTermsID as string,\n\t\tInvoiceDueDate as date,\n\t\tPaymentDate as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ReadInvoices\nReadInvoices alterRow(upsertIf(true())) ~> MarkUpcert\nMarkUpcert sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> WriteInvoiceTable"
+			"script": "source(output(\n\t\tInvoiceID as short,\n\t\tVendorID as short,\n\t\tInvoiceNumber as string,\n\t\tInvoiceDate as date,\n\t\tInvoiceTotal as double,\n\t\tPaymentTotal as double,\n\t\tCreditTotal as double,\n\t\tTermsID as string,\n\t\tInvoiceDueDate as date,\n\t\tPaymentDate as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ReadInvoices\nReadInvoices alterRow(upsertIf(true())) ~> MarkUpsert\nMarkUpsert sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:true,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> WriteInvoiceTable"
 		}
 	}
 }
